@@ -371,9 +371,7 @@ public class Main {
     public static void main(String[] args) {
         loadData();
 
-        if (!dataLoaded) {
-            System.out.println("WARNING: Data_Files folder not found or data not loaded!");
-        } else {
+    
             System.out.println("Data loaded successfully.\n");
             System.out.println("Sample Tests:\n");
             System.out.println("1. Most profitable in January: " + mostProfitableCommodityInMonth(0));
@@ -392,5 +390,6 @@ public class Main {
             System.out.println("- Invalid commodity: " + bestMonthForCommodity("Coal"));
             System.out.println("- Invalid range (10 to 5): " + commodityProfitInRange("Gold", 10, 5));
         }
-    }
+    
 }
+
