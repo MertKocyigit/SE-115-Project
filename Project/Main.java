@@ -12,70 +12,84 @@ public class Main {
     static final int NUM_MONTHS = 12;
     static final int NUM_DAYS = 28;
     static final int NUM_COMMODITIES = 5;
-    static final String[] months = new String[]{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-    static final String[] commodities = new String[]{"Gold", "Oil", "Silver", "Wheat", "Copper"};
-    static int[][][] profits = new int[12][28][5];
+
+    static final String[] months = new String[]{
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+    };
+
+    static final String[] commodities = new String[]{
+            "Gold", "Oil", "Silver", "Wheat", "Copper"
+    };
+
+    static int[][][] profits = new int[NUM_MONTHS][NUM_DAYS][NUM_COMMODITIES];
     static boolean dataLoaded = false;
 
     public Main() {
     }
 
     public static void loadData() {
-        int var1;
-        for(int var0 = 0; var0 < 12; ++var0) {
-            for(var1 = 0; var1 < 28; ++var1) {
-                for(int var2 = 0; var2 < 5; ++var2) {
-                    profits[var0][var1][var2] = 0;
+        int dayIndex;
+
+        for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+            for (dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                for (int commodityIndex = 0; commodityIndex < NUM_COMMODITIES; ++commodityIndex) {
+                    profits[monthIndex][dayIndex][commodityIndex] = 0;
                 }
             }
         }
 
-        File var15 = new File("Data_Files");
-        if (var15.exists() && var15.isDirectory()) {
-            for(var1 = 0; var1 < 12; ++var1) {
-                String var10000 = months[var1];
-                String var16 = var10000 + ".txt";
-                File var3 = new File(var15, var16);
-                if (var3.exists()) {
-                    try {
-                        BufferedReader var4 = new BufferedReader(new FileReader(var3));
+        File dataFolder = new File("Data_Files");
+        if (dataFolder.exists() && dataFolder.isDirectory()) {
 
-                        String var5;
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                String monthFileName = months[monthIndex] + ".txt";
+                File monthFile = new File(dataFolder, monthFileName);
+
+                if (monthFile.exists()) {
+                    try {
+                        BufferedReader reader = new BufferedReader(new FileReader(monthFile));
+                        String line;
+
                         try {
-                            while((var5 = var4.readLine()) != null) {
-                                var5 = var5.trim();
-                                if (!var5.isEmpty()) {
-                                    String[] var6 = var5.split(",");
-                                    if (var6.length >= 3) {
-                                        int var7;
-                                        int var8;
+                            while ((line = reader.readLine()) != null) {
+                                line = line.trim();
+
+                                if (!line.isEmpty()) {
+                                    String[] parts = line.split(",");
+
+                                    if (parts.length >= 3) {
+                                        int dayNumber;
+                                        int profitValue;
+
                                         try {
-                                            var7 = Integer.parseInt(var6[0].trim());
-                                            var8 = Integer.parseInt(var6[2].trim());
-                                        } catch (NumberFormatException var12) {
+                                            dayNumber = Integer.parseInt(parts[0].trim());
+                                            profitValue = Integer.parseInt(parts[2].trim());
+                                        } catch (NumberFormatException parseException) {
                                             continue;
                                         }
 
-                                        String var9 = var6[1].trim();
-                                        int var10 = getCommodityIndex(var9);
-                                        if (isValidDay(var7) && var10 != -1) {
-                                            profits[var1][var7 - 1][var10] = var8;
+                                        String commodityName = parts[1].trim();
+                                        int commodityIndex = getCommodityIndex(commodityName);
+
+                                        if (isValidDay(dayNumber) && commodityIndex != -1) {
+                                            profits[monthIndex][dayNumber - 1][commodityIndex] = profitValue;
                                         }
                                     }
                                 }
                             }
-                        } catch (Throwable var13) {
+                        } catch (Throwable readThrowable) {
                             try {
-                                var4.close();
-                            } catch (Throwable var11) {
-                                var13.addSuppressed(var11);
+                                reader.close();
+                            } catch (Throwable closeThrowable) {
+                                readThrowable.addSuppressed(closeThrowable);
                             }
-
-                            throw var13;
+                            throw readThrowable;
                         }
 
-                        var4.close();
-                    } catch (IOException var14) {
+                        reader.close();
+                    } catch (IOException ioException) {
+
                     }
                 }
             }
@@ -86,232 +100,238 @@ public class Main {
         }
     }
 
-    private static boolean isValidMonth(int var0) {
-        return var0 >= 0 && var0 < 12;
+    private static boolean isValidMonth(int monthIndex) {
+        return monthIndex >= 0 && monthIndex < NUM_MONTHS;
     }
 
-    private static boolean isValidDay(int var0) {
-        return var0 >= 1 && var0 <= 28;
+    private static boolean isValidDay(int dayNumber) {
+        return dayNumber >= 1 && dayNumber <= NUM_DAYS;
     }
 
-    private static int getCommodityIndex(String var0) {
-        if (var0 == null) {
+    private static int getCommodityIndex(String commodityName) {
+        if (commodityName == null) {
             return -1;
         } else {
-            for(int var1 = 0; var1 < commodities.length; ++var1) {
-                if (commodities[var1].equals(var0)) {
-                    return var1;
+            for (int commodityIndex = 0; commodityIndex < commodities.length; ++commodityIndex) {
+                if (commodities[commodityIndex].equals(commodityName)) {
+                    return commodityIndex;
                 }
             }
-
             return -1;
         }
     }
 
-    public static String mostProfitableCommodityInMonth(int var0) {
-        if (!isValidMonth(var0)) {
+    public static String mostProfitableCommodityInMonth(int monthIndex) {
+        if (!isValidMonth(monthIndex)) {
             return "INVALID_MONTH";
         } else {
-            int var1 = 0;
-            int var2 = Integer.MIN_VALUE;
+            int bestCommodityIndex = 0;
+            int bestTotalProfit = Integer.MIN_VALUE;
 
-            for(int var3 = 0; var3 < 5; ++var3) {
-                int var4 = 0;
+            for (int commodityIndex = 0; commodityIndex < NUM_COMMODITIES; ++commodityIndex) {
+                int commodityTotalProfit = 0;
 
-                for(int var5 = 0; var5 < 28; ++var5) {
-                    var4 += profits[var0][var5][var3];
+                for (int dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                    commodityTotalProfit += profits[monthIndex][dayIndex][commodityIndex];
                 }
 
-                if (var4 > var2) {
-                    var2 = var4;
-                    var1 = var3;
+                if (commodityTotalProfit > bestTotalProfit) {
+                    bestTotalProfit = commodityTotalProfit;
+                    bestCommodityIndex = commodityIndex;
                 }
             }
 
-            String var10000 = commodities[var1];
-            return var10000 + " " + var2;
+            return commodities[bestCommodityIndex] + " " + bestTotalProfit;
         }
     }
 
-    public static int totalProfitOnDay(int var0, int var1) {
-        if (isValidMonth(var0) && isValidDay(var1)) {
-            int var2 = var1 - 1;
-            int var3 = 0;
+    public static int totalProfitOnDay(int monthIndex, int dayNumber) {
+        if (isValidMonth(monthIndex) && isValidDay(dayNumber)) {
+            int dayIndex = dayNumber - 1;
+            int totalProfit = 0;
 
-            for(int var4 = 0; var4 < 5; ++var4) {
-                var3 += profits[var0][var2][var4];
+            for (int commodityIndex = 0; commodityIndex < NUM_COMMODITIES; ++commodityIndex) {
+                totalProfit += profits[monthIndex][dayIndex][commodityIndex];
             }
 
-            return var3;
+            return totalProfit;
         } else {
             return -99999;
         }
     }
 
-    public static int commodityProfitInRange(String var0, int var1, int var2) {
-        int var3 = getCommodityIndex(var0);
-        if (var3 != -1 && isValidDay(var1) && isValidDay(var2) && var1 <= var2) {
-            int var4 = var1 - 1;
-            int var5 = var2 - 1;
-            int var6 = 0;
+    public static int commodityProfitInRange(String commodityName, int startDay, int endDay) {
+        int commodityIndex = getCommodityIndex(commodityName);
 
-            for(int var7 = 0; var7 < 12; ++var7) {
-                for(int var8 = var4; var8 <= var5; ++var8) {
-                    var6 += profits[var7][var8][var3];
+        if (commodityIndex != -1 && isValidDay(startDay) && isValidDay(endDay) && startDay <= endDay) {
+            int startDayIndex = startDay - 1;
+            int endDayIndex = endDay - 1;
+            int totalProfit = 0;
+
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                for (int dayIndex = startDayIndex; dayIndex <= endDayIndex; ++dayIndex) {
+                    totalProfit += profits[monthIndex][dayIndex][commodityIndex];
                 }
             }
 
-            return var6;
+            return totalProfit;
         } else {
             return -99999;
         }
     }
 
-    public static int bestDayOfMonth(int var0) {
-        if (!isValidMonth(var0)) {
+    public static int bestDayOfMonth(int monthIndex) {
+        if (!isValidMonth(monthIndex)) {
             return -1;
         } else {
-            int var1 = 1;
-            int var2 = Integer.MIN_VALUE;
+            int bestDay = 1;
+            int bestProfit = Integer.MIN_VALUE;
 
-            for(int var3 = 1; var3 <= 28; ++var3) {
-                int var4 = totalProfitOnDay(var0, var3);
-                if (var4 > var2) {
-                    var2 = var4;
-                    var1 = var3;
+            for (int dayNumber = 1; dayNumber <= NUM_DAYS; ++dayNumber) {
+                int dayProfit = totalProfitOnDay(monthIndex, dayNumber);
+
+                if (dayProfit > bestProfit) {
+                    bestProfit = dayProfit;
+                    bestDay = dayNumber;
                 }
             }
 
-            return var1;
+            return bestDay;
         }
     }
 
-    public static String bestMonthForCommodity(String var0) {
-        int var1 = getCommodityIndex(var0);
-        if (var1 == -1) {
+    public static String bestMonthForCommodity(String commodityName) {
+        int commodityIndex = getCommodityIndex(commodityName);
+
+        if (commodityIndex == -1) {
             return "INVALID_COMMODITY";
         } else {
-            int var2 = 0;
-            int var3 = Integer.MIN_VALUE;
+            int bestMonthIndex = 0;
+            int bestMonthProfit = Integer.MIN_VALUE;
 
-            for(int var4 = 0; var4 < 12; ++var4) {
-                int var5 = 0;
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                int monthTotalProfit = 0;
 
-                for(int var6 = 0; var6 < 28; ++var6) {
-                    var5 += profits[var4][var6][var1];
+                for (int dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                    monthTotalProfit += profits[monthIndex][dayIndex][commodityIndex];
                 }
 
-                if (var5 > var3) {
-                    var3 = var5;
-                    var2 = var4;
+                if (monthTotalProfit > bestMonthProfit) {
+                    bestMonthProfit = monthTotalProfit;
+                    bestMonthIndex = monthIndex;
                 }
             }
 
-            return months[var2];
+            return months[bestMonthIndex];
         }
     }
 
-    public static int consecutiveLossDays(String var0) {
-        int var1 = getCommodityIndex(var0);
-        if (var1 == -1) {
+    public static int consecutiveLossDays(String commodityName) {
+        int commodityIndex = getCommodityIndex(commodityName);
+
+        if (commodityIndex == -1) {
             return -1;
         } else {
-            int var2 = 0;
-            int var3 = 0;
+            int maxLossStreak = 0;
+            int currentLossStreak = 0;
 
-            for(int var4 = 0; var4 < 12; ++var4) {
-                for(int var5 = 0; var5 < 28; ++var5) {
-                    if (profits[var4][var5][var1] < 0) {
-                        ++var3;
-                        if (var3 > var2) {
-                            var2 = var3;
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                for (int dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                    if (profits[monthIndex][dayIndex][commodityIndex] < 0) {
+                        ++currentLossStreak;
+
+                        if (currentLossStreak > maxLossStreak) {
+                            maxLossStreak = currentLossStreak;
                         }
                     } else {
-                        var3 = 0;
+                        currentLossStreak = 0;
                     }
                 }
             }
 
-            return var2;
+            return maxLossStreak;
         }
     }
 
-    public static int daysAboveThreshold(String var0, int var1) {
-        int var2 = getCommodityIndex(var0);
-        if (var2 == -1) {
+    public static int daysAboveThreshold(String commodityName, int threshold) {
+        int commodityIndex = getCommodityIndex(commodityName);
+
+        if (commodityIndex == -1) {
             return -1;
         } else {
-            int var3 = 0;
+            int daysCount = 0;
 
-            for(int var4 = 0; var4 < 12; ++var4) {
-                for(int var5 = 0; var5 < 28; ++var5) {
-                    if (profits[var4][var5][var2] > var1) {
-                        ++var3;
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                for (int dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                    if (profits[monthIndex][dayIndex][commodityIndex] > threshold) {
+                        ++daysCount;
                     }
                 }
             }
 
-            return var3;
+            return daysCount;
         }
     }
 
-    public static int biggestDailySwing(int var0) {
-        if (!isValidMonth(var0)) {
+    public static int biggestDailySwing(int monthIndex) {
+        if (!isValidMonth(monthIndex)) {
             return -99999;
         } else {
-            int[] var1 = new int[28];
+            int[] dailyTotals = new int[NUM_DAYS];
 
-            int var2;
-            int var3;
-            int var4;
-            for(var2 = 0; var2 < 28; ++var2) {
-                var3 = 0;
+            int dayIndex;
+            int commodityIndex;
+            int dailySum;
 
-                for(var4 = 0; var4 < 5; ++var4) {
-                    var3 += profits[var0][var2][var4];
+            for (dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                dailySum = 0;
+
+                for (commodityIndex = 0; commodityIndex < NUM_COMMODITIES; ++commodityIndex) {
+                    dailySum += profits[monthIndex][dayIndex][commodityIndex];
                 }
 
-                var1[var2] = var3;
+                dailyTotals[dayIndex] = dailySum;
             }
 
-            var2 = 0;
+            int biggestSwing = 0;
 
-            for(var3 = 0; var3 < 27; ++var3) {
-                var4 = var1[var3] - var1[var3 + 1];
-                if (var4 < 0) {
-                    var4 = -var4;
+            for (dayIndex = 0; dayIndex < NUM_DAYS - 1; ++dayIndex) {
+                int diff = dailyTotals[dayIndex] - dailyTotals[dayIndex + 1];
+
+                if (diff < 0) {
+                    diff = -diff;
                 }
 
-                if (var4 > var2) {
-                    var2 = var4;
+                if (diff > biggestSwing) {
+                    biggestSwing = diff;
                 }
             }
 
-            return var2;
+            return biggestSwing;
         }
     }
 
-    public static String compareTwoCommodities(String var0, String var1) {
-        int var2 = getCommodityIndex(var0);
-        int var3 = getCommodityIndex(var1);
-        if (var2 != -1 && var3 != -1) {
-            int var4 = 0;
-            int var5 = 0;
+    public static String compareTwoCommodities(String commodityA, String commodityB) {
+        int commodityIndexA = getCommodityIndex(commodityA);
+        int commodityIndexB = getCommodityIndex(commodityB);
 
-            int var6;
-            for(var6 = 0; var6 < 12; ++var6) {
-                for(int var7 = 0; var7 < 28; ++var7) {
-                    var4 += profits[var6][var7][var2];
-                    var5 += profits[var6][var7][var3];
+        if (commodityIndexA != -1 && commodityIndexB != -1) {
+            int totalProfitA = 0;
+            int totalProfitB = 0;
+
+            for (int monthIndex = 0; monthIndex < NUM_MONTHS; ++monthIndex) {
+                for (int dayIndex = 0; dayIndex < NUM_DAYS; ++dayIndex) {
+                    totalProfitA += profits[monthIndex][dayIndex][commodityIndexA];
+                    totalProfitB += profits[monthIndex][dayIndex][commodityIndexB];
                 }
             }
 
-            if (var4 > var5) {
-                var6 = var4 - var5;
-                return var0 + " is better by " + var6;
-            } else if (var5 > var4) {
-                var6 = var5 - var4;
-                return var1 + " is better by " + var6;
+            if (totalProfitA > totalProfitB) {
+                int diff = totalProfitA - totalProfitB;
+                return commodityA + " is better by " + diff;
+            } else if (totalProfitB > totalProfitA) {
+                int diff = totalProfitB - totalProfitA;
+                return commodityB + " is better by " + diff;
             } else {
                 return "Equal";
             }
@@ -320,37 +340,37 @@ public class Main {
         }
     }
 
-    public static String bestWeekOfMonth(int var0) {
-        if (!isValidMonth(var0)) {
+    public static String bestWeekOfMonth(int monthIndex) {
+        if (!isValidMonth(monthIndex)) {
             return "INVALID_MONTH";
         } else {
-            int[][] var1 = new int[][]{{1, 7}, {8, 14}, {15, 21}, {22, 28}};
-            int var2 = 0;
-            int var3 = Integer.MIN_VALUE;
+            int[][] weekRanges = new int[][]{{1, 7}, {8, 14}, {15, 21}, {22, 28}};
+            int bestWeekIndex = 0;
+            int bestWeekProfit = Integer.MIN_VALUE;
 
-            for(int var4 = 0; var4 < var1.length; ++var4) {
-                int var5 = var1[var4][0];
-                int var6 = var1[var4][1];
-                int var7 = 0;
+            for (int weekIndex = 0; weekIndex < weekRanges.length; ++weekIndex) {
+                int weekStartDay = weekRanges[weekIndex][0];
+                int weekEndDay = weekRanges[weekIndex][1];
+                int weekProfit = 0;
 
-                for(int var8 = var5; var8 <= var6; ++var8) {
-                    int var9 = totalProfitOnDay(var0, var8);
-                    var7 += var9;
+                for (int dayNumber = weekStartDay; dayNumber <= weekEndDay; ++dayNumber) {
+                    int dayProfit = totalProfitOnDay(monthIndex, dayNumber);
+                    weekProfit += dayProfit;
                 }
 
-                if (var7 > var3) {
-                    var3 = var7;
-                    var2 = var4;
+                if (weekProfit > bestWeekProfit) {
+                    bestWeekProfit = weekProfit;
+                    bestWeekIndex = weekIndex;
                 }
             }
 
-            return "Week " + (var2 + 1);
-
+            return "Week " + (bestWeekIndex + 1);
         }
     }
 
     public static void main(String[] args) {
         loadData();
+
         if (!dataLoaded) {
             System.out.println("WARNING: Data_Files folder not found or data not loaded!");
         } else {
@@ -366,6 +386,7 @@ public class Main {
             System.out.println("8. Biggest swing in March: " + biggestDailySwing(2));
             System.out.println("9. Gold vs Oil: " + compareTwoCommodities("Gold", "Oil"));
             System.out.println("10. Best week in April: " + bestWeekOfMonth(3));
+
             System.out.println("\nError Handling Tests:");
             System.out.println("- Invalid month (15): " + mostProfitableCommodityInMonth(15));
             System.out.println("- Invalid commodity: " + bestMonthForCommodity("Coal"));
