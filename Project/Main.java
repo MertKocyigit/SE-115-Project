@@ -368,28 +368,6 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
-        loadData();
 
-    
-            System.out.println("Data loaded successfully.\n");
-            System.out.println("Sample Tests:\n");
-            System.out.println("1. Most profitable in January: " + mostProfitableCommodityInMonth(0));
-            System.out.println("2. Total profit on Jan 15: " + totalProfitOnDay(0, 15));
-            System.out.println("3. Gold profit (days 1-14, all months): " + commodityProfitInRange("Gold", 1, 14));
-            System.out.println("4. Best day in February: " + bestDayOfMonth(1));
-            System.out.println("5. Best month for Gold: " + bestMonthForCommodity("Gold"));
-            System.out.println("6. Longest loss streak for Oil: " + consecutiveLossDays("Oil"));
-            System.out.println("7. Days Gold > 5000: " + daysAboveThreshold("Gold", 5000));
-            System.out.println("8. Biggest swing in March: " + biggestDailySwing(2));
-            System.out.println("9. Gold vs Oil: " + compareTwoCommodities("Gold", "Oil"));
-            System.out.println("10. Best week in April: " + bestWeekOfMonth(3));
 
-            System.out.println("\nError Handling Tests:");
-            System.out.println("- Invalid month (15): " + mostProfitableCommodityInMonth(15));
-            System.out.println("- Invalid commodity: " + bestMonthForCommodity("Coal"));
-            System.out.println("- Invalid range (10 to 5): " + commodityProfitInRange("Gold", 10, 5));
-        }
-    
 }
-
